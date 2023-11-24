@@ -1,0 +1,174 @@
+defaultRules:
+  create: true
+  rules:
+    etcd: false
+    kubeControllerManager: false
+    kubeProxy: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+  disabled:
+    Watchdog: true
+    InfoInhibitor: true
+
+alertmanager:
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+    maxUnavailable: ""
+  ingress:
+    enabled: true
+    hosts: 
+      - alertmanager.kubernetes.docker.internal
+    paths:
+     - /
+  alertmanagerSpec:
+    image:
+      registry: cgr.dev
+      repository: chainguard/prometheus-alertmanager
+      tag: ""
+      sha: "09594d189f6a21ab2b293ad6761f2c8003d67d1fca463c83b592715f64ee3f48"
+    resources:
+      requests:
+        memory: 400Mi
+        cpu: 500m
+      limits:
+        memory: 1Gi
+
+grafana:
+  enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - grafana.kubernetes.docker.internal
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'default'
+        orgId: 1
+        folder: 'Imported'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      k6-results:
+        url: https://raw.githubusercontent.com/StuxxNet/pick-esquenta/main/configs/helm/kube-prometheus-stack/dashboards/k6_results.json
+      redis:
+        url: https://raw.githubusercontent.com/StuxxNet/pick-esquenta/main/configs/helm/kube-prometheus-stack/dashboards/redis.json
+
+kubeControllerManager:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  image:
+    registry: cgr.dev
+    repository: chainguard/kube-state-metrics
+    sha: "sha256:3e29688126c13479b90d590f61de01378bd37eec83342aaf3066185e47819758"
+    pullPolicy: IfNotPresent
+  resources: 
+    limits:
+     memory: 64Mi
+    requests:
+     cpu: 10m
+     memory: 32Mi
+
+nodeExporter:
+  operatingSystems:
+    darwin:
+      enabled: false
+
+prometheus-node-exporter:
+  image:
+    registry: cgr.dev
+    repository: chainguard/prometheus-node-exporter
+    pullPolicy: IfNotPresent
+    digest: "sha256:09f68e470dd249b87600023adac65e9b466543b1bb9e32ecdfb6ecded378b4d9"
+  resources:
+    limits:
+     memory: 64Mi
+    requests:
+     cpu: 10m
+     memory: 32Mi
+
+prometheusOperator:
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  image:
+    registry: cgr.dev
+    repository: chainguard/prometheus-operator
+    sha: "2bbdce268f8146d50bf3d9e6bf44bd0cf9b154105d8b2df08227a962f41882fa"
+    pullPolicy: IfNotPresent
+  prometheusConfigReloader:
+    image:
+      registry: cgr.dev
+      repository: chainguard/prometheus-config-reloader
+      sha: "c128598b3a0fd5b7c2b8de6079eb051ce9c290e0d05c1a7a6fc49007a180dc9f"
+    enableProbe: true
+    resources:
+      requests:
+        cpu: 200m
+        memory: 50Mi
+      limits:
+        cpu: 200m
+        memory: 50Mi
+
+prometheus:
+  enabled: true
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+    maxUnavailable: ""
+  ingress:
+    enabled: true
+    hosts:
+      - prometheus.kubernetes.docker.internal
+    paths:
+      - /
+  prometheusSpec:
+    image:
+      registry: cgr.dev
+      repository: chainguard/prometheus
+      sha: "8d893c8fae39b7ebf7338e694a38a73cefa362d6b867a72b76fbc6f695349973"
+    externalUrl: ""
+    enableRemoteWriteReceiver: true
+    ruleSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeConfigSelectorNilUsesHelmValues: false
+    retention: 10d
+    retentionSize: "8GB"
+    resources:
+      requests:
+        cpu: 500m
+        memory: 400Mi
+      limits: 
+        memory: 1Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+           requests:
+             storage: 10Gi

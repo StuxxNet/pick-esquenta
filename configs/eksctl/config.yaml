@@ -1,0 +1,32 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: pick
+  region: eu-central-1
+
+iam:
+  withOIDC: true
+
+nodeGroups:
+  - name: ng-1
+    instanceType: t3.medium
+    desiredCapacity: 5
+    privateNetworking: true
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        albIngress: true
+
+addons:
+- name: vpc-cni
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  resolveConflicts: overwrite
+- name: aws-ebs-csi-driver
+  attachPolicyARNs:
+    - arn:aws:iam::aws:policy/AmazonEKS_EBS_CSI_DriverRole 
+  resolveConflicts: overwrite
+- name: coredns
+  configurationValues: |-
+    replicaCount: 2

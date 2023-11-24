@@ -1,0 +1,123 @@
+name: Build and Push Giropops Senhas
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 
+
+      - uses: ahmadnassri/action-commit-lint@v2
+        with:
+          config: angular
+
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: giropops-senhas/Dockerfile
+          config: configs/hadolint/hadolint-config.yaml
+
+      - name: Kubernetes Linter
+        uses: stackrox/kube-linter-action@v1.0.4
+        with:
+          directory: giropops-senhas/manifests
+          config: configs/kubelinter/kubelinter-config.yaml
+          format: sarif
+          output-file: kube-linter.sarif
+  
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+
+    steps:
+      - name: Clone da aplicação
+        uses: actions/checkout@v3
+
+      - name: SAST
+        run: |
+          semgrep giropops-senhas/src \
+            --sarif --output sast.sarif \
+            --metrics=off \
+            --config="p/default"
+
+      - name: Salvando report como artefato
+        uses: actions/upload-artifact@v3
+        with:
+          name: sast.sarif
+          path: sast.sarif
+    needs: [lint]
+
+  docker:
+    name: Build
+    runs-on: ubuntu-22.04
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Gerando short-sha para tag do container
+        id: uuid
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Criando .env
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          envkey_DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          envkey_K6_PROMETHEUS_RW_SERVER_URL: "http://prometheus.kubernetes.docker.internal/api/v1/write"
+          envkey_GIROPOPS_SENHAS_TAG: ${{ steps.uuid.outputs.sha_short }}
+
+      - name: Buidando a imagem do Dockerfile
+        run: |
+          make build-image   
+
+      - name: Verificando vulnerabilidades com Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'docker.io/library/giropops-senhas-python-chainguard:${{ steps.uuid.outputs.sha_short }}'
+          format: 'table'
+          output: 'trivy-results.sarif'
+
+      - name: Salvando report como artefato
+        uses: actions/upload-artifact@v3
+        with:
+          name: trivy-results.sarif
+          path: trivy-results.sarif
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.2.0
+
+      - name: Sign and Push
+        run: |
+          make push-image-dockerhub-ci
+
+    needs: [test]
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configurando context do kubernetes
+        run: |
+          echo "Contexto configurado"
+
+      - name: Deploy da stack
+        run: |
+          echo "Deploy realizado"
+
+    needs: [docker]

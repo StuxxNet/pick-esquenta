@@ -1,0 +1,11 @@
+checks:
+  addAllBuiltIn: true
+  exclude:
+    - "unset-cpu-limits"
+    - "dnsconfig-options"
+    - "no-anti-affinity"
+    - "no-node-affinity"
+    - "non-isolated-pod"
+    - "no-read-only-root-fs"
+    - "run-as-non-root"
+    - "unset-cpu-requirements"
