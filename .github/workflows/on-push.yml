@@ -138,8 +138,6 @@ jobs:
 
       - name: Deploy do Giropops Senhas no EKS
         run: |
-          make set-context-eks
-          make deploy-giropops-senhas
-          make update-giropops-senhas-image
+          make deploy-giropops-senhas-aws
 
     needs: [docker]

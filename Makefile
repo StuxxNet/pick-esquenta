@@ -43,10 +43,11 @@ deploy-kind-cluster:					# Realiza a instalação do cluster local
 	kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=270s
 
 delete-kind-cluster:					# Remove o cluster local
-	kind get clusters | grep -i ${CLUSTER_NAME} && kind delete clusters ${CLUSTER_NAME} || echo "Cluster does not exists"
+	kind get clusters | grep -i ${CLUSTER_NAME} && kind delete clusters ${CLUSTER_NAME} || echo "Cluster não existe"
 
 set-context-kind:						# Seta contexto do Kind
-	aws eks --region eu-central-1 update-kubeconfig --name ${CLUSTER_NAME}
+	kind get clusters | grep -i ${CLUSTER_NAME} || echo "Cluster não existe" && exit 1
+	kubectl config set-context ${CLUSTER_NAME}
 
 ##------------------------------------------------------------------------
 ##                     AWS K8S Cluster
@@ -59,6 +60,7 @@ delete-eks-cluster:						# Remove o cluster na AWS
 
 set-context-eks:						# Seta contexto para EKS
 	aws eks --region eu-central-1 update-kubeconfig --name ${CLUSTER_NAME}
+	kubectl config set-context ${CLUSTER_NAME}
 
 ##------------------------------------------------------------------------
 ##                     Comandos do Ingress - EKS
@@ -165,17 +167,22 @@ push-image-dockerhub-ci:    			# Realiza o push da imagem para o Dockerhub - Som
 	docker push ${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	cosign sign --yes --rekor-url "https://rekor.sigstore.dev/" ${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 
-deploy-giropops-senhas:					# Realiza a instalação do Giropops
+deploy-giropops-senhas:			# Realiza a instalação do Giropops
 	kubectl apply -f ${GIROPOPS_SENHAS_MANIFESTS}
 
 update-giropops-senhas-image: 			# Realiza o update da image no deployment
 	kubectl set image -n giropops-senhas deployment/giropops-senhas giropops-senhas=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl rollout restart -n giropops-senhas deployment giropops-senhas 
 
-deploy giropops-senhas-aws:  			# Realiza deploy no EKS
-	make set-context-eks
-	make deploy-giropops-senhas
-	make update-giropops-senhas-image
+deploy-giropops-senhas-local:  			# Realiza deploy no EKS
+	$(MAKE) set-context-kind
+	$(MAKE) deploy-giropops-senhas
+	$(MAKE) update-giropops-senhas-image
+
+deploy-giropops-senhas-aws:  			# Realiza deploy no EKS
+	$(MAKE) set-context-eks
+	$(MAKE) deploy-giropops-senhas
+	$(MAKE) update-giropops-senhas-image
 
 delete-giropops-senhas:					# Remove a instalação do Giropops
 	kubectl delete -f ${GIROPOPS_SENHAS_MANIFESTS}
