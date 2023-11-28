@@ -31,12 +31,8 @@ $ npm install -g dotenv-cli
 Após a instalação do CLI faça uma cópia do arquivo "[.env.example](./.env.example)" e renomeie este arquivo para ".env" preenchendo o conteúdo com as informações necessárias. Abaixo você encontra um descritívo de cada uma das variáveis.
 
 ```bash
-DOCKERHUB_USERNAME # Usuário do DockerHub
-DOCKERHUB_TOKEN # Token do Dockerhub
-COSIGN_PVT_KEY # Private key utilizada pelo cosign pra assinatura da imagem em formato base64
-COSIGN_PUB_KEY # Chave pública para checar a assinatura via cosign
-COSIGN_PASSWORD # Password do seu par de chaves
 K6_PROMETHEUS_RW_SERVER_URL # URL da Write API do Prometheus
+GIROPOPS_SENHAS_TAG # Tag para build e teste - uso somente local
 ```
 
 Para o funcionamento total das aplicações em ambiente local adicione também as seguintes entradas no seu arquivo hosts:
@@ -78,8 +74,10 @@ deploy-all-local: Sobe a infra completa localmente num cluster Kind
 deploy-eks-cluster: Cria o cluster na AWS
 deploy-giropops-senhas: Realiza a instalação do Giropops
 deploy-kind-cluster: Realiza a instalação do cluster local
-deploy-kube-prometheus-stack: Realiza a instalação do Prometheus
-deploy-redis: Realiza a instalação do Redis
+deploy-kube-prometheus-stack-eks: Realiza a instalação do Prometheus no EKS
+deploy-kube-prometheus-stack-local: Realiza a instalação do Prometheus localmente
+deploy-redis-eks: Realiza a instalação do Redis no EKS
+deploy-redis-local: Realiza a instalação do Redis localmente
 help: Mostra help
 lint-dockerfile: Lint Dockerfile
 lint-manifests: Lint kubernetes manifests
