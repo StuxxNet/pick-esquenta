@@ -8,6 +8,10 @@ EKSCTL_CONFIG := configs/eksctl/config.yaml
 KUBERNETES_LINT_CONFIG := configs/kubelinter/kubelinter-config.yaml
 DOCKER_LINT_CONFIG := configs/hadolint/hadolint-config.yaml
 
+INGRESS_RELEASE := ingress-nginx
+INGRESS_NAMESPACE := ingress-nginx
+INGRESS_CHART_VALUES_EKS := configs/helm/ingress-nginx-controller/values-eks.yaml
+
 REDIS_NAMESPACE := bitnami-redis
 REDIS_RELEASE := bitnami-redis
 REDIS_CHART_LOCAL_VALUES := configs/helm/redis/values-kind.yml
@@ -50,6 +54,25 @@ deploy-eks-cluster:		# Cria o cluster na AWS
 
 delete-eks-cluster:		# Remove o cluster na AWS
 	eksctl delete cluster --name=${CLUSTER_NAME}
+
+
+##------------------------------------------------------------------------
+##                     Comandos do Ingress - EKS
+##------------------------------------------------------------------------
+deploy-ingress-eks:			# Realiza o deploy do ingress no EKS
+	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	helm repo update
+	helm upgrade -i ${INGRESS_RELEASE} -n ${INGRESS_NAMESPACE} ingress-nginx/ingress-nginx \
+		--values ${INGRESS_CHART_VALUES_EKS} \
+		--wait \
+		--atomic \
+		--debug \
+		--timeout 3m \
+		--create-namespace
+
+delete-ingress-eks:			# Realiza a deleção do ingress no EKS
+	helm uninstall ${INGRESS_RELEASE} -n ${INGRESS_NAMESPACE}
+	kubectl delete ns ${INGRESS_NAMESPACE}
 
 ##------------------------------------------------------------------------
 ##                    Comandos do Redis
@@ -158,8 +181,14 @@ lint-dockerfile:			# Lint Dockerfile
 ##------------------------------------------------------------------------
 deploy-all-local:		# Sobe a infra completa localmente num cluster Kind
 	$(MAKE) deploy-kind-cluster
-	$(MAKE) deploy-kube-prometheus-stack
-	$(MAKE) deploy-redis
+	$(MAKE) deploy-kube-prometheus-stack-local
+	$(MAKE) deploy-redis-local
+	$(MAKE) deploy-giropops-senhas
+
+deploy-all-aws:			# Sobe a infra completa localmente num cluster Kind
+	$(MAKE) deploy-eks-cluster
+	$(MAKE) deploy-kube-prometheus-stack-eks
+	$(MAKE) deploy-redis-eks
 	$(MAKE) deploy-giropops-senhas
 
 ##------------------------------------------------------------------------

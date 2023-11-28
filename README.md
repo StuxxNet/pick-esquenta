@@ -67,12 +67,15 @@ build-image: Realiza o build da imagem
 build-scan-push-local: Realiza o build, análise e push da imagem para o cluster local para fim de testes
 delete-eks-cluster: Remove o cluster na AWS
 delete-giropops-senhas: Remove a instalação do Giropops
+delete-ingress-eks: Realiza a deleção do ingress no EKS
 delete-kind-cluster: Remove o cluster local
 delete-kube-prometheus-stack: Remove a instalação do Prometheus
 delete-redis: Remove a instalação do Redis
+deploy-all-aws: Sobe a infra completa localmente num cluster Kind
 deploy-all-local: Sobe a infra completa localmente num cluster Kind
 deploy-eks-cluster: Cria o cluster na AWS
 deploy-giropops-senhas: Realiza a instalação do Giropops
+deploy-ingress-eks: Realiza o deploy do ingress no EKS
 deploy-kind-cluster: Realiza a instalação do cluster local
 deploy-kube-prometheus-stack-eks: Realiza a instalação do Prometheus no EKS
 deploy-kube-prometheus-stack-local: Realiza a instalação do Prometheus localmente
