@@ -125,12 +125,3 @@ $ make start-loadtest
 Ele iniciará o stress-test da aplicação usando como base o scrit [generate-keys.js](./loadtest/generate-keys.js) e enviará os dados para o Prometheus. Lá você poderá visualizar os resultados do seu teste buscando pelo "Test ID" na barra superior:
 
 ![Load test](./static/stress.png)
-
-## ToDos
-
-Pipeline:
-
-Deploy:
-- Setar contexto AWS
-- Deploy no Kubernetes
-- Step manual
