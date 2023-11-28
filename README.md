@@ -67,19 +67,24 @@ $ make help
 O retorno deverá ser algo como o abaixo:
 
 ```bash
-build-and-push: Realiza o build, análise e push da imagem para o Dockerhub
 build-image: Realiza o build da imagem
+build-scan-push-local: Realiza o build, análise e push da imagem para o cluster local para fim de testes
+delete-eks-cluster: Remove o cluster na AWS
 delete-giropops-senhas: Remove a instalação do Giropops
 delete-kind-cluster: Remove o cluster local
 delete-kube-prometheus-stack: Remove a instalação do Prometheus
 delete-redis: Remove a instalação do Redis
 deploy-all-local: Sobe a infra completa localmente num cluster Kind
+deploy-eks-cluster: Cria o cluster na AWS
 deploy-giropops-senhas: Realiza a instalação do Giropops
 deploy-kind-cluster: Realiza a instalação do cluster local
 deploy-kube-prometheus-stack: Realiza a instalação do Prometheus
 deploy-redis: Realiza a instalação do Redis
 help: Mostra help
-push-image-dockerhub: Realiza o push da imagem para o Dockerhub
+lint-dockerfile: Lint Dockerfile
+lint-manifests: Lint kubernetes manifests
+push-image-dockerhub-ci: Realiza o push da imagem para o Dockerhub - Somente CI
+scan-image: Realiza o scan da imagem usando Trivy
 start-loadtest: Executa loadtest usando K6 enviando os resultados para o Prometheus
 ```
 
@@ -123,10 +128,6 @@ Ele iniciará o stress-test da aplicação usando como base o scrit [generate-ke
 ## ToDos
 
 Pipeline:
-
-Lint:
-- Lint dos manifestos;
-- Lint do Python;
 
 Deploy:
 - Setar contexto AWS

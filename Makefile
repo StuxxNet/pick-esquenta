@@ -11,10 +11,12 @@ DOCKER_LINT_CONFIG := configs/hadolint/hadolint-config.yaml
 REDIS_NAMESPACE := bitnami-redis
 REDIS_RELEASE := bitnami-redis
 REDIS_CHART_LOCAL_VALUES := configs/helm/redis/values-kind.yml
+REDIS_CHART_EKS_VALUES := configs/helm/redis/values-eks.yml
 
 KUBE_PROMETHEUS_STACK_NAMESPACE := kube-prometheus-stack
 KUBE_PROMETHEUS_STACK_RELESE := kube-prometheus-stack
 KUBE_PROMETHEUS_STACK_CHART_LOCAL_VALUES := configs/helm/kube-prometheus-stack/values-kind.yml
+KUBE_PROMETHEUS_STACK_CHART_EKS_VALUES := configs/helm/kube-prometheus-stack/values-eks.yml
 
 GIROPOPS_SENHAS_ROOT := giropops-senhas
 GIROPOPS_SENHAS_MANIFESTS := ${GIROPOPS_SENHAS_ROOT}/manifests
@@ -52,9 +54,18 @@ delete-eks-cluster:		# Remove o cluster na AWS
 ##------------------------------------------------------------------------
 ##                    Comandos do Redis
 ##------------------------------------------------------------------------
-deploy-redis:			# Realiza a instalação do Redis
+deploy-redis-local:			# Realiza a instalação do Redis localmente
 	helm upgrade -i ${REDIS_RELEASE} -n ${REDIS_NAMESPACE} oci://registry-1.docker.io/bitnamicharts/redis \
 		--values ${REDIS_CHART_LOCAL_VALUES} \
+		--wait \
+		--atomic \
+		--debug \
+		--timeout 3m \
+		--create-namespace
+
+deploy-redis-eks:			# Realiza a instalação do Redis no EKS
+	helm upgrade -i ${REDIS_RELEASE} -n ${REDIS_NAMESPACE} oci://registry-1.docker.io/bitnamicharts/redis \
+		--values ${REDIS_CHART_EKS_VALUES} \
 		--wait \
 		--atomic \
 		--debug \
@@ -68,11 +79,22 @@ delete-redis:			# Remove a instalação do Redis
 ##------------------------------------------------------------------------
 ##                     Comandos do Prometheus
 ##------------------------------------------------------------------------
-deploy-kube-prometheus-stack:		# Realiza a instalação do Prometheus
+deploy-kube-prometheus-stack-local:		# Realiza a instalação do Prometheus localmente
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	helm repo update
 	helm upgrade -i ${KUBE_PROMETHEUS_STACK_RELESE} -n ${KUBE_PROMETHEUS_STACK_NAMESPACE} prometheus-community/kube-prometheus-stack \
 		--values ${KUBE_PROMETHEUS_STACK_CHART_LOCAL_VALUES} \
+		--wait \
+		--atomic \
+		--debug \
+		--timeout 3m \
+		--create-namespace
+
+deploy-kube-prometheus-stack-eks:		# Realiza a instalação do Prometheus no EKS
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	helm repo update
+	helm upgrade -i ${KUBE_PROMETHEUS_STACK_RELESE} -n ${KUBE_PROMETHEUS_STACK_NAMESPACE} prometheus-community/kube-prometheus-stack \
+		--values ${KUBE_PROMETHEUS_STACK_CHART_EKS_VALUES} \
 		--wait \
 		--atomic \
 		--debug \

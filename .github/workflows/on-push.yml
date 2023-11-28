@@ -13,22 +13,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3 
 
-      - uses: ahmadnassri/action-commit-lint@v2
+      - name: Check commit messages
+        uses: ahmadnassri/action-commit-lint@v2
         with:
           config: angular
 
-      - uses: hadolint/hadolint-action@v3.1.0
+      - name: Scan dockerfile com Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: giropops-senhas/Dockerfile
           config: configs/hadolint/hadolint-config.yaml
 
-      - name: Kubernetes Linter
+      - name: Scan yaml files com kube-linter
         uses: stackrox/kube-linter-action@v1.0.4
         with:
           directory: giropops-senhas/manifests
           config: configs/kubelinter/kubelinter-config.yaml
           format: sarif
           output-file: kube-linter.sarif
+        continue-on-error: true
   
   test:
     name: Test

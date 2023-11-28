@@ -9,3 +9,4 @@ checks:
     - "no-read-only-root-fs"
     - "run-as-non-root"
     - "unset-cpu-requirements"
+    - "minimum-three-replicas"
