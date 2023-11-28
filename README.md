@@ -125,3 +125,14 @@ $ make start-loadtest
 Ele iniciará o stress-test da aplicação usando como base o scrit [generate-keys.js](./loadtest/generate-keys.js) e enviará os dados para o Prometheus. Lá você poderá visualizar os resultados do seu teste buscando pelo "Test ID" na barra superior:
 
 ![Load test](./static/stress.png)
+
+## ToDos e Refinos
+
+- [ ] Criar targets de clean;
+- [ ] Deploy to Metric Server na AWS;
+- [ ] Converter giropops-senhas pra kustomize e ajustar o make-targets;
+- [ ] Ajustar os values dos helm charts (ingress, images e resources);
+- [ ] Ajustar lint no CI que tá quebrando
+- [ ] Organizar GitHub Actions;
+- [ ] Teste geral de todos os targets;
+- [ ] Update da documentação.
