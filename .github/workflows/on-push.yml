@@ -84,7 +84,7 @@ jobs:
 
       - name: Buidando a imagem do Dockerfile
         run: |
-          make build-image   
+          make build-image
 
       - name: Verificando vulnerabilidades com Trivy
         uses: aquasecurity/trivy-action@master
@@ -114,13 +114,32 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Configurando context do kubernetes
+      
+      - name: Gerando short-sha para tag do container
+        id: uuid
         run: |
-          echo "Contexto configurado"
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Deploy da stack
+      - name: Criando .env
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          envkey_GIROPOPS_SENHAS_TAG: ${{ steps.uuid.outputs.sha_short }}
+
+      - name: Configurando credenciais da AWS
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Instalando kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Deploy do Giropops Senhas no EKS
         run: |
-          echo "Deploy realizado"
+          make set-context-eks
+          make deploy-giropops-senhas
+          make update-giropops-senhas-image
 
     needs: [docker]

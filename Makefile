@@ -45,6 +45,8 @@ deploy-kind-cluster:	# Realiza a instalação do cluster local
 delete-kind-cluster:	# Remove o cluster local
 	kind get clusters | grep -i ${CLUSTER_NAME} && kind delete clusters ${CLUSTER_NAME} || echo "Cluster does not exists"
 
+set-context-kind:		# Seta contexto do Kind
+	aws eks --region eu-central-1 update-kubeconfig --name ${CLUSTER_NAME}
 
 ##------------------------------------------------------------------------
 ##                     AWS K8S Cluster
@@ -55,6 +57,8 @@ deploy-eks-cluster:		# Cria o cluster na AWS
 delete-eks-cluster:		# Remove o cluster na AWS
 	eksctl delete cluster --name=${CLUSTER_NAME}
 
+set-context-eks:		# Seta contexto para EKS
+	aws eks --region eu-central-1 update-kubeconfig --name ${CLUSTER_NAME}
 
 ##------------------------------------------------------------------------
 ##                     Comandos do Ingress - EKS
@@ -164,6 +168,9 @@ push-image-dockerhub-ci:    # Realiza o push da imagem para o Dockerhub - Soment
 deploy-giropops-senhas:		# Realiza a instalação do Giropops
 	kubectl apply -f ${GIROPOPS_SENHAS_MANIFESTS}
 
+update-giropops-senhas-image:
+	kubectl set image deployment/giropops-senhas giropops-senhas=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
+
 delete-giropops-senhas:		# Remove a instalação do Giropops
 	kubectl delete -f ${GIROPOPS_SENHAS_MANIFESTS}
 
@@ -185,11 +192,11 @@ deploy-all-local:		# Sobe a infra completa localmente num cluster Kind
 	$(MAKE) deploy-redis-local
 	$(MAKE) deploy-giropops-senhas
 
-deploy-all-aws:			# Sobe a infra completa localmente num cluster Kind
+deploy-infra-aws:			# Sobe a infra completa na AWS
 	$(MAKE) deploy-eks-cluster
+	$(MAKE) deploy-ingress-eks
 	$(MAKE) deploy-kube-prometheus-stack-eks
 	$(MAKE) deploy-redis-eks
-	$(MAKE) deploy-giropops-senhas
 
 ##------------------------------------------------------------------------
 ##                     Stress Test
