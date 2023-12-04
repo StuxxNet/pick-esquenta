@@ -5,7 +5,7 @@ metadata:
   namespace: giropops-senhas
 spec:
   rules:
-  - host: giropops-senhas.kubernetes.docker.internal
+  - host: giropops-senhas.svc.cluster.local
     http:
       paths:
       - path: /

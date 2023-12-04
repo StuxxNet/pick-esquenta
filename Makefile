@@ -8,6 +8,10 @@ EKSCTL_CONFIG := configs/eksctl/config.yaml
 KUBERNETES_LINT_CONFIG := configs/kubelinter/kubelinter-config.yaml
 DOCKER_LINT_CONFIG := configs/hadolint/hadolint-config.yaml
 
+METRICS_SERVER_RELEASE := metrics-server
+METRICS_SERVER_NAMESPACE := kube-system
+METRICS_SERVER_CHART_VALUES_EKS := configs/helm/metric-server/values-eks.yml
+
 INGRESS_RELEASE := ingress-nginx
 INGRESS_NAMESPACE := ingress-nginx
 INGRESS_CHART_VALUES_EKS := configs/helm/ingress-nginx-controller/values-eks.yaml
@@ -23,8 +27,10 @@ KUBE_PROMETHEUS_STACK_CHART_LOCAL_VALUES := configs/helm/kube-prometheus-stack/v
 KUBE_PROMETHEUS_STACK_CHART_EKS_VALUES := configs/helm/kube-prometheus-stack/values-eks.yml
 
 GIROPOPS_SENHAS_ROOT := giropops-senhas
-GIROPOPS_SENHAS_MANIFESTS := ${GIROPOPS_SENHAS_ROOT}/manifests
+GIROPOPS_SENHAS_LOCAL := ${GIROPOPS_SENHAS_ROOT}/manifests/overlays/kind
+GIROPOPS_SENHAS_EKS := ${GIROPOPS_SENHAS_ROOT}/manifests/overlays/eks
 GIROPOPS_SENHAS_DOCKERFILE := ${GIROPOPS_SENHAS_ROOT}/Dockerfile
+GIROPOPS_SENHAS_NAMESPACE := giropops-senhas
 
 ##------------------------------------------------------------------------
 ##                      Carrega .env
@@ -79,6 +85,24 @@ deploy-ingress-eks:						# Realiza o deploy do ingress no EKS
 delete-ingress-eks:						# Realiza a deleção do ingress no EKS
 	helm uninstall ${INGRESS_RELEASE} -n ${INGRESS_NAMESPACE}
 	kubectl delete ns ${INGRESS_NAMESPACE}
+
+##------------------------------------------------------------------------
+##                    Comandos do Metrics Server
+##------------------------------------------------------------------------
+deploy-metrics-server:					# Realiza a instalação do Metrics Server no EKS
+	helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+	helm repo update
+	helm upgrade -i ${METRICS_SERVER_RELEASE} -n ${METRICS_SERVER_NAMESPACE} metrics-server/metrics-server \
+		--values ${METRICS_SERVER_CHART_VALUES_EKS} \
+		--wait \
+		--atomic \
+		--debug \
+		--timeout 3m \
+		--create-namespace
+
+delete-metrics-server:					# Remove a instalação do Metrics Server no EKS
+	helm uninstall ${METRICS_SERVER_RELEASE} -n ${METRICS_SERVER_NAMESPACE}
+	kubectl delete ns ${METRICS_SERVER_CHART_VALUES_EKS}
 
 ##------------------------------------------------------------------------
 ##                    Comandos do Redis
@@ -167,21 +191,26 @@ push-image-dockerhub-ci:    			# Realiza o push da imagem para o Dockerhub - Som
 	docker push ${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	cosign sign --yes --rekor-url "https://rekor.sigstore.dev/" ${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 
-deploy-giropops-senhas:			# Realiza a instalação do Giropops
-	kubectl apply -f ${GIROPOPS_SENHAS_MANIFESTS}
+deploy-giropops-senhas-kind:			# Realiza a instalação do Giropops no Kind
+	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
+	kubectl apply -k ${GIROPOPS_SENHAS_LOCAL}
+
+deploy-giropops-senhas-eks:			   # Realiza a instalação do Giropops no EKS
+	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
+	kubectl apply -k ${GIROPOPS_SENHAS_EKS}
 
 update-giropops-senhas-image: 			# Realiza o update da image no deployment
 	kubectl set image -n giropops-senhas deployment/giropops-senhas giropops-senhas=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl rollout restart -n giropops-senhas deployment giropops-senhas 
 
-deploy-giropops-senhas-local:  			# Realiza deploy no EKS
+deploy-giropops-senhas-local:  			# Realiza deploy no Kind
 	$(MAKE) set-context-kind
-	$(MAKE) deploy-giropops-senhas
+	$(MAKE) deploy-giropops-senhas-kind
 	$(MAKE) update-giropops-senhas-image
 
 deploy-giropops-senhas-aws:  			# Realiza deploy no EKS
 	$(MAKE) set-context-eks
-	$(MAKE) deploy-giropops-senhas
+	$(MAKE) deploy-giropops-senhas-eks
 	$(MAKE) update-giropops-senhas-image
 
 delete-giropops-senhas:					# Remove a instalação do Giropops
@@ -210,6 +239,19 @@ deploy-infra-aws:						# Sobe a infra completa na AWS
 	$(MAKE) deploy-ingress-eks
 	$(MAKE) deploy-kube-prometheus-stack-eks
 	$(MAKE) deploy-redis-eks
+	$(MAKE) deploy-metrics-server
+
+##------------------------------------------------------------------------
+##                     Comandos de cleanup
+##------------------------------------------------------------------------
+clean-local:							# Clean do ambiente local
+	$(MAKE) set-context-kind
+	$(MAKE) delete-kind-cluster
+
+clean-aws:								# Clean do ambiente na AWS
+	$(MAKE) set-context-eks
+	$(MAKE) drop-pdb
+	$(MAKE) delete-eks-cluster
 
 ##------------------------------------------------------------------------
 ##                     Stress Test
@@ -217,6 +259,13 @@ deploy-infra-aws:						# Sobe a infra completa na AWS
 .PHONY: loadtest
 start-loadtest:		        			# Executa loadtest usando K6 enviando os resultados para o Prometheus
 	k6 run -o experimental-prometheus-rw --tag testid=exec-$(shell date +"%d-%m-%y:%T") loadtest/generate-keys.js
+
+##------------------------------------------------------------------------
+##                     Utils
+##------------------------------------------------------------------------
+.PHONY: drop-pdb						# Dropa os PDBs do cluster
+drop-pdb:
+	bash scripts/drop-pdb.sh
 
 ##------------------------------------------------------------------------
 ##                     Helper

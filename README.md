@@ -128,11 +128,8 @@ Ele iniciará o stress-test da aplicação usando como base o scrit [generate-ke
 
 ## ToDos e Refinos
 
-- [ ] Criar targets de clean;
-- [ ] Deploy to Metric Server na AWS;
-- [ ] Converter giropops-senhas pra kustomize e ajustar o make-targets;
+- [ ] Ajustar overlays do giropops-senhas;
 - [ ] Ajustar os values dos helm charts (ingress, images e resources);
 - [ ] Ajustar lint no CI que tá quebrando
-- [ ] Organizar GitHub Actions;
 - [ ] Teste geral de todos os targets;
 - [ ] Update da documentação.

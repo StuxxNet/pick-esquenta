@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- configmap.yml
+- serviceaccount.yml
+- deployment.yml
+- service.yml
+- ingress.yml
+- service-monitor.yml
+- hpa.yml
