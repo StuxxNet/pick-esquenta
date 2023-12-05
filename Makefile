@@ -27,6 +27,7 @@ KUBE_PROMETHEUS_STACK_CHART_LOCAL_VALUES := configs/helm/kube-prometheus-stack/v
 KUBE_PROMETHEUS_STACK_CHART_EKS_VALUES := configs/helm/kube-prometheus-stack/values-eks.yml
 
 GIROPOPS_SENHAS_ROOT := giropops-senhas
+GIROPOPS_SENHAS_BASE := ${GIROPOPS_SENHAS_ROOT}/manifests/base
 GIROPOPS_SENHAS_LOCAL := ${GIROPOPS_SENHAS_ROOT}/manifests/overlays/kind
 GIROPOPS_SENHAS_EKS := ${GIROPOPS_SENHAS_ROOT}/manifests/overlays/eks
 GIROPOPS_SENHAS_DOCKERFILE := ${GIROPOPS_SENHAS_ROOT}/Dockerfile
@@ -52,8 +53,8 @@ delete-kind-cluster:					# Remove o cluster local
 	kind get clusters | grep -i ${CLUSTER_NAME} && kind delete clusters ${CLUSTER_NAME} || echo "Cluster não existe"
 
 set-context-kind:						# Seta contexto do Kind
-	kind get clusters | grep -i ${CLUSTER_NAME} || echo "Cluster não existe" && exit 1
-	kubectl config set-context ${CLUSTER_NAME}
+	kind get clusters | grep -i ${CLUSTER_NAME} || (echo "Cluster não existe" && exit 1)
+	kubectl config set-context kind-${CLUSTER_NAME}
 
 ##------------------------------------------------------------------------
 ##                     AWS K8S Cluster
@@ -193,25 +194,22 @@ push-image-dockerhub-ci:    			# Realiza o push da imagem para o Dockerhub - Som
 
 deploy-giropops-senhas-kind:			# Realiza a instalação do Giropops no Kind
 	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
+	cd ${GIROPOPS_SENHAS_BASE} && kustomize edit set image giropops-senhas=giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl apply -k ${GIROPOPS_SENHAS_LOCAL}
+	kubectl rollout restart deployment -n ${GIROPOPS_SENHAS_NAMESPACE} giropops-senhas
 
 deploy-giropops-senhas-eks:			   # Realiza a instalação do Giropops no EKS
 	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
+	cd ${GIROPOPS_SENHAS_BASE} && kustomize edit set image giropops-senhas=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl apply -k ${GIROPOPS_SENHAS_EKS}
-
-update-giropops-senhas-image: 			# Realiza o update da image no deployment
-	kubectl set image -n giropops-senhas deployment/giropops-senhas giropops-senhas=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
-	kubectl rollout restart -n giropops-senhas deployment giropops-senhas 
 
 deploy-giropops-senhas-local:  			# Realiza deploy no Kind
 	$(MAKE) set-context-kind
 	$(MAKE) deploy-giropops-senhas-kind
-	$(MAKE) update-giropops-senhas-image
 
 deploy-giropops-senhas-aws:  			# Realiza deploy no EKS
 	$(MAKE) set-context-eks
 	$(MAKE) deploy-giropops-senhas-eks
-	$(MAKE) update-giropops-senhas-image
 
 delete-giropops-senhas:					# Remove a instalação do Giropops
 	kubectl delete -f ${GIROPOPS_SENHAS_MANIFESTS}
@@ -232,7 +230,8 @@ deploy-all-local:						# Sobe a infra completa localmente num cluster Kind
 	$(MAKE) deploy-kind-cluster
 	$(MAKE) deploy-kube-prometheus-stack-local
 	$(MAKE) deploy-redis-local
-	$(MAKE) deploy-giropops-senhas
+	$(MAKE) build-scan-push-local
+	$(MAKE) deploy-giropops-senhas-local
 
 deploy-infra-aws:						# Sobe a infra completa na AWS
 	$(MAKE) deploy-eks-cluster

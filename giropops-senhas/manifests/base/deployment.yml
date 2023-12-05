@@ -3,10 +3,6 @@ kind: Deployment
 metadata:
   name: giropops-senhas
   namespace: giropops-senhas
-  labels:
-    owner: "bravo"
-  annotations:
-    email: ramonboorges@gmail.com
 spec:
   strategy:
     type: RollingUpdate
@@ -34,10 +30,11 @@ spec:
               key: REDIS_HOST
         resources:
           requests:
-            cpu: 0.5
+            cpu: "0.25"
             memory: 64Mi
           limits:
-            memory: 256Mi
+            memory: 128Mi
+            cpu: "0.5"
         livenessProbe:
           httpGet:
             path: /

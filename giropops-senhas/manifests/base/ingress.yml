@@ -5,8 +5,7 @@ metadata:
   namespace: giropops-senhas
 spec:
   rules:
-  - host: giropops-senhas.svc.cluster.local
-    http:
+  - http:
       paths:
       - path: /
         pathType: Prefix

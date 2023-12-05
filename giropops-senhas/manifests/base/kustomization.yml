@@ -1,5 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+commonLabels:
+  owner: bravo
 resources:
 - configmap.yml
 - serviceaccount.yml
@@ -8,3 +10,7 @@ resources:
 - ingress.yml
 - service-monitor.yml
 - hpa.yml
+images:
+- name: giropops-senhas
+  newName: giropops-senhas-python-chainguard
+  newTag: local

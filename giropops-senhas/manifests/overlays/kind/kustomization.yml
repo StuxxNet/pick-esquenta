@@ -4,4 +4,6 @@ resources:
   - ../../base
 
 patches:
+- path: deployment.yml
+- path: hpa.yml
 - path: ingress.yml

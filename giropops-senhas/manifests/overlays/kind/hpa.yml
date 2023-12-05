@@ -1,0 +1,8 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: giropops-senhas
+  namespace: giropops-senhas
+spec:
+  minReplicas: 2
+  maxReplicas: 4

@@ -9,7 +9,7 @@ iam:
   withOIDC: true
 
 nodeGroups:
-  - name: ng-1
+  - name: default-nodegroup
     instanceType: t3.medium
     desiredCapacity: 5
     privateNetworking: true

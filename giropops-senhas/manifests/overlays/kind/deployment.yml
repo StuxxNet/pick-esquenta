@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: giropops-senhas
+  namespace: giropops-senhas
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  template:
+    spec:
+      containers:
+      - name: giropops-senhas
+        resources:
+          requests:
+            cpu: "0.15"
+            memory: 32Mi
+          limits:
+            memory: 64Mi
+            cpu: "0.25"
