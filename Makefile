@@ -10,7 +10,9 @@ DOCKER_LINT_CONFIG := configs/hadolint/hadolint-config.yaml
 
 METRICS_SERVER_RELEASE := metrics-server
 METRICS_SERVER_NAMESPACE := kube-system
-METRICS_SERVER_CHART_VALUES_EKS := configs/helm/metric-server/values.yml
+METRICS_SERVER_CHART_VALUES := configs/helm/metric-server/values.yml
+METRICS_SERVER_CHART_LOCAL_VALUES := configs/helm/metric-server/values-kind.yml
+METRICS_SERVER_CHART_EKS_VALUES := configs/helm/metric-server/values-eks.yml
 
 INGRESS_RELEASE := ingress-nginx
 INGRESS_NAMESPACE := ingress-nginx
@@ -46,8 +48,6 @@ export
 ##------------------------------------------------------------------------
 deploy-kind-cluster:					# Realiza a instalação do cluster local
 	kind get clusters | grep -i ${CLUSTER_NAME} && echo "Cluster já existe" || kind create cluster --wait 120s --name ${CLUSTER_NAME} --config ${CLUSTER_CONFIG}
-	kubectl apply -k configs/kind/metric-server
-	kubectl wait --namespace kube-system --for=condition=ready pod --selector=k8s-app=metrics-server --timeout=270s
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 	kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=270s
 
@@ -67,9 +67,8 @@ deploy-eks-cluster:						# Cria o cluster na AWS
 delete-eks-cluster:						# Remove o cluster na AWS
 	eksctl delete cluster --name=${CLUSTER_NAME}
 
-set-context-eks:						# Atualiza contexto para EKS
+generate-context-aws:						# Atualiza contexto para EKS
 	aws eks --region eu-central-1 update-kubeconfig --name ${CLUSTER_NAME}
-	kubectl config set-context ${CLUSTER_NAME}
 
 ##------------------------------------------------------------------------
 ##                     Comandos do Ingress - EKS
@@ -92,11 +91,24 @@ delete-ingress-eks:						# Realiza a deleção do ingress no EKS
 ##------------------------------------------------------------------------
 ##                    Comandos do Metrics Server
 ##------------------------------------------------------------------------
-deploy-metrics-server:					# Realiza a instalação do Metrics Server no EKS
+deploy-metrics-server-local:					# Realiza a instalação do Metrics Server no Kind
 	helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 	helm repo update
 	helm upgrade -i ${METRICS_SERVER_RELEASE} -n ${METRICS_SERVER_NAMESPACE} metrics-server/metrics-server \
-		--values ${METRICS_SERVER_CHART_VALUES_EKS} \
+		--values ${METRICS_SERVER_CHART_VALUES} \
+		--values ${METRICS_SERVER_CHART_LOCAL_VALUES} \
+		--wait \
+		--atomic \
+		--debug \
+		--timeout 3m \
+		--create-namespace
+
+deploy-metrics-server-eks:					# Realiza a instalação do Metrics Server no EKS
+	helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+	helm repo update
+	helm upgrade -i ${METRICS_SERVER_RELEASE} -n ${METRICS_SERVER_NAMESPACE} metrics-server/metrics-server \
+		--values ${METRICS_SERVER_CHART_VALUES} \
+		--values ${METRICS_SERVER_CHART_EKS_VALUES} \
 		--wait \
 		--atomic \
 		--debug \
@@ -105,7 +117,7 @@ deploy-metrics-server:					# Realiza a instalação do Metrics Server no EKS
 
 delete-metrics-server:					# Remove a instalação do Metrics Server no EKS
 	helm uninstall ${METRICS_SERVER_RELEASE} -n ${METRICS_SERVER_NAMESPACE}
-	kubectl delete ns ${METRICS_SERVER_CHART_VALUES_EKS}
+	kubectl delete ns ${METRICS_SERVER_NAMESPACE}
 
 ##------------------------------------------------------------------------
 ##                    Comandos do Redis
@@ -214,7 +226,7 @@ deploy-giropops-senhas-local:  			# Realiza deploy no Kind
 	$(MAKE) deploy-giropops-senhas-kind
 
 deploy-giropops-senhas-aws:  			# Realiza deploy no EKS
-	$(MAKE) set-context-eks
+	$(MAKE) generate-context-aws
 	$(MAKE) deploy-giropops-senhas-eks
 
 delete-giropops-senhas:					# Remove a instalação do Giropops
@@ -236,6 +248,7 @@ deploy-all-local:						# Sobe a infra completa localmente num cluster Kind
 	$(MAKE) deploy-kind-cluster
 	$(MAKE) deploy-kube-prometheus-stack-local
 	$(MAKE) deploy-redis-local
+	$(MAKE) deploy-metrics-server-local
 	$(MAKE) build-scan-push-local
 	$(MAKE) deploy-giropops-senhas-local
 
@@ -244,7 +257,7 @@ deploy-infra-aws:						# Sobe a infra completa na AWS
 	$(MAKE) deploy-ingress-eks
 	$(MAKE) deploy-kube-prometheus-stack-eks
 	$(MAKE) deploy-redis-eks
-	$(MAKE) deploy-metrics-server
+	$(MAKE) deploy-metrics-server-eks
 
 ##------------------------------------------------------------------------
 ##                     Comandos de cleanup
@@ -254,7 +267,6 @@ clean-local:							# Clean do ambiente local
 	$(MAKE) delete-kind-cluster
 
 clean-aws:								# Clean do ambiente na AWS
-	$(MAKE) set-context-eks
 	$(MAKE) drop-pdb
 	$(MAKE) delete-eks-cluster
 
