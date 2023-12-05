@@ -8,7 +8,7 @@ on:
 env:
   DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-  GIROPOPS_SENHAS_TAG: $(git rev-parse --short HEAD)
+  GIROPOPS_SENHAS_TAG: ${GITHUB_SHA}
 
 jobs:
   lint:
@@ -42,7 +42,6 @@ jobs:
           config: configs/kubelinter/kubelinter-config.yaml
           format: sarif
           output-file: kube-linter.sarif
-        continue-on-error: true
   
   test:
     name: Test

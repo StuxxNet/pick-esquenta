@@ -10,3 +10,4 @@ checks:
     - "run-as-non-root"
     - "unset-cpu-requirements"
     - "minimum-three-replicas"
+    - "required-annotation-email"
