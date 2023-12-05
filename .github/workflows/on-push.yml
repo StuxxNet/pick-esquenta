@@ -49,8 +49,7 @@ jobs:
     container:
       image: returntocorp/semgrep
 
-    permissions:
-      statuses: write
+    permissions: write-all
 
     steps:
       - name: Clone da aplicação
@@ -74,10 +73,7 @@ jobs:
     name: Build
     runs-on: ubuntu-22.04
 
-    permissions:
-      contents: read
-      id-token: write
-      statuses: write
+    permissions: write-all
 
     steps:
       - name: Checkout code
