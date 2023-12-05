@@ -11,6 +11,5 @@ resources:
 - service-monitor.yml
 - hpa.yml
 images:
-- name: giropops-senhas
-  newName: giropops-senhas-python-chainguard
+- name: giropops-senhas-python-chainguard
   newTag: local

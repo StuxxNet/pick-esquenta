@@ -10,19 +10,21 @@ DOCKER_LINT_CONFIG := configs/hadolint/hadolint-config.yaml
 
 METRICS_SERVER_RELEASE := metrics-server
 METRICS_SERVER_NAMESPACE := kube-system
-METRICS_SERVER_CHART_VALUES_EKS := configs/helm/metric-server/values-eks.yml
+METRICS_SERVER_CHART_VALUES_EKS := configs/helm/metric-server/values.yml
 
 INGRESS_RELEASE := ingress-nginx
 INGRESS_NAMESPACE := ingress-nginx
-INGRESS_CHART_VALUES_EKS := configs/helm/ingress-nginx-controller/values-eks.yaml
+INGRESS_CHART_VALUES_EKS := configs/helm/ingress-nginx-controller/values.yaml
 
 REDIS_NAMESPACE := bitnami-redis
 REDIS_RELEASE := bitnami-redis
+REDIS_CHART_VALUES := configs/helm/redis/values.yml
 REDIS_CHART_LOCAL_VALUES := configs/helm/redis/values-kind.yml
 REDIS_CHART_EKS_VALUES := configs/helm/redis/values-eks.yml
 
 KUBE_PROMETHEUS_STACK_NAMESPACE := kube-prometheus-stack
 KUBE_PROMETHEUS_STACK_RELESE := kube-prometheus-stack
+KUBE_PROMETHEUS_STACK_CHART_VALUES := configs/helm/kube-prometheus-stack/values.yml
 KUBE_PROMETHEUS_STACK_CHART_LOCAL_VALUES := configs/helm/kube-prometheus-stack/values-kind.yml
 KUBE_PROMETHEUS_STACK_CHART_EKS_VALUES := configs/helm/kube-prometheus-stack/values-eks.yml
 
@@ -110,6 +112,7 @@ delete-metrics-server:					# Remove a instalação do Metrics Server no EKS
 ##------------------------------------------------------------------------
 deploy-redis-local:						# Realiza a instalação do Redis localmente
 	helm upgrade -i ${REDIS_RELEASE} -n ${REDIS_NAMESPACE} oci://registry-1.docker.io/bitnamicharts/redis \
+		--values ${REDIS_CHART_VALUES} \
 		--values ${REDIS_CHART_LOCAL_VALUES} \
 		--wait \
 		--atomic \
@@ -119,6 +122,7 @@ deploy-redis-local:						# Realiza a instalação do Redis localmente
 
 deploy-redis-eks:						# Realiza a instalação do Redis no EKS
 	helm upgrade -i ${REDIS_RELEASE} -n ${REDIS_NAMESPACE} oci://registry-1.docker.io/bitnamicharts/redis \
+		--values ${REDIS_CHART_VALUES} \
 		--values ${REDIS_CHART_EKS_VALUES} \
 		--wait \
 		--atomic \
@@ -137,6 +141,7 @@ deploy-kube-prometheus-stack-local:		# Realiza a instalação do Prometheus loca
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	helm repo update
 	helm upgrade -i ${KUBE_PROMETHEUS_STACK_RELESE} -n ${KUBE_PROMETHEUS_STACK_NAMESPACE} prometheus-community/kube-prometheus-stack \
+		--values ${KUBE_PROMETHEUS_STACK_CHART_VALUES} \
 		--values ${KUBE_PROMETHEUS_STACK_CHART_LOCAL_VALUES} \
 		--wait \
 		--atomic \
@@ -148,6 +153,7 @@ deploy-kube-prometheus-stack-eks:		# Realiza a instalação do Prometheus no EKS
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	helm repo update
 	helm upgrade -i ${KUBE_PROMETHEUS_STACK_RELESE} -n ${KUBE_PROMETHEUS_STACK_NAMESPACE} prometheus-community/kube-prometheus-stack \
+		--values ${KUBE_PROMETHEUS_STACK_CHART_VALUES} \
 		--values ${KUBE_PROMETHEUS_STACK_CHART_EKS_VALUES} \
 		--wait \
 		--atomic \
@@ -200,7 +206,7 @@ deploy-giropops-senhas-kind:			# Realiza a instalação do Giropops no Kind
 
 deploy-giropops-senhas-eks:			   # Realiza a instalação do Giropops no EKS
 	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
-	cd ${GIROPOPS_SENHAS_BASE} && kustomize edit set image giropops-senhas=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
+	cd ${GIROPOPS_SENHAS_BASE} && kustomize edit set image giropops-senhas-python-chainguard=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl apply -k ${GIROPOPS_SENHAS_EKS}
 
 deploy-giropops-senhas-local:  			# Realiza deploy no Kind

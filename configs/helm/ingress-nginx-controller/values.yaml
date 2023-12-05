@@ -1,4 +1,8 @@
 controller:
+  image:
+    registry: cgr.dev
+    image: chainguard/ingress-nginx-controller
+    digest: sha256:48f4cef800d2332c9655e37b9402a72f589b42a1c8bc4e9b534810016b7353e2
   replicaCount: 3
   service:
     type: LoadBalancer
