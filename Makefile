@@ -38,12 +38,6 @@ GIROPOPS_SENHAS_DOCKERFILE := ${GIROPOPS_SENHAS_ROOT}/Dockerfile
 GIROPOPS_SENHAS_NAMESPACE := giropops-senhas
 
 ##------------------------------------------------------------------------
-##                      Carrega .env
-##------------------------------------------------------------------------
-include .env
-export
-
-##------------------------------------------------------------------------
 ##                     Local K8S Cluster
 ##------------------------------------------------------------------------
 deploy-kind-cluster:					# Realiza a instalação do cluster local

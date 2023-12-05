@@ -29,10 +29,16 @@ jobs:
           dockerfile: giropops-senhas/Dockerfile
           config: configs/hadolint/hadolint-config.yaml
 
+      - uses: imranismail/setup-kustomize@v2
+      
+      - name: Gerando os manifests para lint
+        run: |
+          kustomize build giropops-senhas/manifests/overlays/eks >> ./giropops-senhas/manifests/rendered-manifests.yaml
+
       - name: Scan yaml files com kube-linter
         uses: stackrox/kube-linter-action@v1.0.4
         with:
-          directory: giropops-senhas/manifests
+          directory: ./giropops-senhas/manifests/rendered-manifests.yaml
           config: configs/kubelinter/kubelinter-config.yaml
           format: sarif
           output-file: kube-linter.sarif
@@ -81,7 +87,7 @@ jobs:
       - name: Verificando vulnerabilidades com Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'docker.io/library/giropops-senhas-python-chainguard:${{ steps.uuid.outputs.sha_short }}'
+          image-ref: 'docker.io/library/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}'
           format: 'table'
           output: 'trivy-results.sarif'
 
