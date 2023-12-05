@@ -1,14 +1,5 @@
 defaultRules:
-  create: true
-  rules:
-    etcd: false
-    kubeControllerManager: false
-    kubeProxy: false
-    kubeSchedulerAlerting: false
-    kubeSchedulerRecording: false
-  disabled:
-    Watchdog: true
-    InfoInhibitor: true
+  create: false
 
 alertmanager:
   podDisruptionBudget:
@@ -16,11 +7,7 @@ alertmanager:
     minAvailable: 1
     maxUnavailable: ""
   ingress:
-    enabled: true
-    hosts: 
-      - alertmanager.kubernetes.docker.internal
-    paths:
-     - /
+    enabled: false
   alertmanagerSpec:
     image:
       registry: cgr.dev
@@ -37,9 +24,7 @@ alertmanager:
 grafana:
   enabled: true
   ingress:
-    enabled: true
-    hosts:
-      - grafana.kubernetes.docker.internal
+    enabled: false
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
@@ -56,8 +41,6 @@ grafana:
     default:
       k6-results:
         url: https://raw.githubusercontent.com/StuxxNet/pick-esquenta/main/configs/helm/kube-prometheus-stack/dashboards/k6_results.json
-      redis:
-        url: https://raw.githubusercontent.com/StuxxNet/pick-esquenta/main/configs/helm/kube-prometheus-stack/dashboards/redis.json
 
 kubeControllerManager:
   enabled: false
@@ -139,11 +122,7 @@ prometheus:
     minAvailable: 1
     maxUnavailable: ""
   ingress:
-    enabled: true
-    hosts:
-      - prometheus.kubernetes.docker.internal
-    paths:
-      - /
+    enabled: false
   prometheusSpec:
     image:
       registry: cgr.dev
@@ -156,7 +135,7 @@ prometheus:
     podMonitorSelectorNilUsesHelmValues: false
     probeSelectorNilUsesHelmValues: false
     scrapeConfigSelectorNilUsesHelmValues: false
-    retention: 10d
+    retention: 30d
     retentionSize: "8GB"
     resources:
       requests:
@@ -164,11 +143,11 @@ prometheus:
         memory: 400Mi
       limits: 
         memory: 1Gi
+        cpu: 1
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: gp2
           accessModes: ["ReadWriteOnce"]
           resources:
-           requests:
-             storage: 10Gi
+            requests:
+              storage: 10Gi

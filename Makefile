@@ -10,9 +10,9 @@ DOCKER_LINT_CONFIG := configs/hadolint/hadolint-config.yaml
 
 METRICS_SERVER_RELEASE := metrics-server
 METRICS_SERVER_NAMESPACE := kube-system
-METRICS_SERVER_CHART_VALUES := configs/helm/metric-server/values.yml
-METRICS_SERVER_CHART_LOCAL_VALUES := configs/helm/metric-server/values-kind.yml
-METRICS_SERVER_CHART_EKS_VALUES := configs/helm/metric-server/values-eks.yml
+METRICS_SERVER_CHART_VALUES := configs/helm/metrics-server/values.yml
+METRICS_SERVER_CHART_LOCAL_VALUES := configs/helm/metrics-server/values-kind.yml
+METRICS_SERVER_CHART_EKS_VALUES := configs/helm/metrics-server/values-eks.yml
 
 INGRESS_RELEASE := ingress-nginx
 INGRESS_NAMESPACE := ingress-nginx
@@ -67,8 +67,9 @@ deploy-eks-cluster:						# Cria o cluster na AWS
 delete-eks-cluster:						# Remove o cluster na AWS
 	eksctl delete cluster --name=${CLUSTER_NAME}
 
-generate-context-aws:						# Atualiza contexto para EKS
+set-context-eks:					# Atualiza contexto para EKS
 	aws eks --region eu-central-1 update-kubeconfig --name ${CLUSTER_NAME}
+	kubectl config use-context arn:aws:eks:eu-central-1:$(shell aws sts get-caller-identity --output json | jq '.Account' -r):cluster/${CLUSTER_NAME} 
 
 ##------------------------------------------------------------------------
 ##                     Comandos do Ingress - EKS
@@ -210,13 +211,13 @@ push-image-dockerhub-ci:    			# Realiza o push da imagem para o Dockerhub - Som
 	docker push ${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	cosign sign --yes --rekor-url "https://rekor.sigstore.dev/" ${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 
-deploy-giropops-senhas-kind:			# Realiza a instalação do Giropops no Kind
+deploy-giropops-senhas-kind:			
 	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
 	cd ${GIROPOPS_SENHAS_BASE} && kustomize edit set image giropops-senhas=giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl apply -k ${GIROPOPS_SENHAS_LOCAL}
 	kubectl rollout restart deployment -n ${GIROPOPS_SENHAS_NAMESPACE} giropops-senhas
 
-deploy-giropops-senhas-eks:			   # Realiza a instalação do Giropops no EKS
+deploy-giropops-senhas-eks:			   
 	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
 	cd ${GIROPOPS_SENHAS_BASE} && kustomize edit set image giropops-senhas-python-chainguard=${DOCKERHUB_USERNAME}/giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl apply -k ${GIROPOPS_SENHAS_EKS}
@@ -226,10 +227,10 @@ deploy-giropops-senhas-local:  			# Realiza deploy no Kind
 	$(MAKE) deploy-giropops-senhas-kind
 
 deploy-giropops-senhas-aws:  			# Realiza deploy no EKS
-	$(MAKE) generate-context-aws
+	$(MAKE) set-context-eks
 	$(MAKE) deploy-giropops-senhas-eks
 
-delete-giropops-senhas:					# Remove a instalação do Giropops
+delete-giropops-senhas:					# Remove a instalação do Giropops Senhas
 	kubectl delete -f ${GIROPOPS_SENHAS_MANIFESTS}
 
 ##------------------------------------------------------------------------
@@ -267,6 +268,7 @@ clean-local:							# Clean do ambiente local
 	$(MAKE) delete-kind-cluster
 
 clean-aws:								# Clean do ambiente na AWS
+	$(MAKE) set-context-eks
 	$(MAKE) drop-pdb
 	$(MAKE) delete-eks-cluster
 
