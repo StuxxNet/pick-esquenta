@@ -54,9 +54,9 @@ deploy-kind-cluster:					# Realiza a instalação do cluster local
 delete-kind-cluster:					# Remove o cluster local
 	kind get clusters | grep -i ${CLUSTER_NAME} && kind delete clusters ${CLUSTER_NAME} || echo "Cluster não existe"
 
-set-context-kind:						# Seta contexto do Kind
+set-context-kind:						# Atualiza contexto do Kind
 	kind get clusters | grep -i ${CLUSTER_NAME} || (echo "Cluster não existe" && exit 1)
-	kubectl config set-context kind-${CLUSTER_NAME}
+	kubectl config use-context kind-${CLUSTER_NAME}
 
 ##------------------------------------------------------------------------
 ##                     AWS K8S Cluster
@@ -67,7 +67,7 @@ deploy-eks-cluster:						# Cria o cluster na AWS
 delete-eks-cluster:						# Remove o cluster na AWS
 	eksctl delete cluster --name=${CLUSTER_NAME}
 
-set-context-eks:						# Seta contexto para EKS
+set-context-eks:						# Atualiza contexto para EKS
 	aws eks --region eu-central-1 update-kubeconfig --name ${CLUSTER_NAME}
 	kubectl config set-context ${CLUSTER_NAME}
 

@@ -1,23 +1,13 @@
-image:
-  registry: cgr.dev
-  repository: chainguard/redis-server-bitnami
-  digest: "sha256:b2c8322f1785cf2e4ce805959faffe84b505ef7572e84cb27ca43fc680f74fad"
-  pullPolicy: Always
-
-auth:
-  enabled: false
-
 commonConfiguration: |-
   appendonly yes
-  maxmemory 200mb
+  maxmemory 500mb
   maxmemory-policy allkeys-lru
   save ""
 
 master:
-  disableCommands: []
   resources:
     limits:
-      memory: 256Mi
+      memory: 600Mi
     requests:
       cpu: 0.5
       memory: 128Mi
@@ -25,33 +15,17 @@ master:
     size: 1Gi
 
 replica:
+  replicaCount: 5
   resources:
     limits:
-      memory: 256Mi
+      memory: 600Mi
     requests:
       cpu: 0.5
       memory: 128Mi
   persistence:
     size: 1Gi
-  autoscaling:
-    enabled: false
-    minReplicas: 3
-    maxReplicas: 5
-    targetMemory: "80"
-
-pdb:
-  create: true
-  minAvailable: 1
 
 metrics:
-  enabled: true
-  image:
-    registry: cgr.dev
-    repository: chainguard/prometheus-redis-exporter
-    digest: "sha256:53d74b9b90beed6bbba6c910703e7db1e90494f86396861e9f860c4cb4b58709"
-    pullPolicy: Always
-  serviceMonitor:
-    enabled: true
   prometheusRule:
     rules:
       - alert: RedisDown
