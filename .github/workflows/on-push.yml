@@ -5,6 +5,11 @@ on:
     branches:
       - 'main'
 
+env:
+  DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  GIROPOPS_SENHAS_TAG: $(git rev-parse --short HEAD)
+
 jobs:
   lint:
     name: Lint
@@ -69,19 +74,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Gerando short-sha para tag do container
-        id: uuid
-        run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Criando .env
-        uses: SpicyPizza/create-envfile@v2.0
-        with:
-          envkey_DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          envkey_DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          envkey_K6_PROMETHEUS_RW_SERVER_URL: "http://prometheus.kubernetes.docker.internal/api/v1/write"
-          envkey_GIROPOPS_SENHAS_TAG: ${{ steps.uuid.outputs.sha_short }}
-
       - name: Buidando a imagem do Dockerfile
         run: |
           make build-image
@@ -114,17 +106,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
-      - name: Gerando short-sha para tag do container
-        id: uuid
-        run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Criando .env
-        uses: SpicyPizza/create-envfile@v2.0
-        with:
-          envkey_DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
-          envkey_GIROPOPS_SENHAS_TAG: ${{ steps.uuid.outputs.sha_short }}
 
       - name: Configurando credenciais da AWS
         uses: aws-actions/configure-aws-credentials@v1

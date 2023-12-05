@@ -129,5 +129,4 @@ Ele iniciará o stress-test da aplicação usando como base o scrit [generate-ke
 ## ToDos e Refinos
 
 - [ ] Ajustar lint no CI que tá quebrando
-- [ ] Teste geral de todos os targets;
 - [ ] Update da documentação.
