@@ -1,4 +1,5 @@
 defaultRules:
+  create: true
   disabled:
     Watchdog: true
     InfoInhibitor: true
