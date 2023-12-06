@@ -207,7 +207,6 @@ push-image-dockerhub-ci:    			# Realiza o push da imagem para o Dockerhub - Som
 
 deploy-giropops-senhas-kind:			
 	kubectl create ns ${GIROPOPS_SENHAS_NAMESPACE} || echo "Namespace já existe"
-	cd ${GIROPOPS_SENHAS_BASE} && kustomize edit set image giropops-senhas=giropops-senhas-python-chainguard:${GIROPOPS_SENHAS_TAG}
 	kubectl apply -k ${GIROPOPS_SENHAS_LOCAL}
 	kubectl rollout restart deployment -n ${GIROPOPS_SENHAS_NAMESPACE} giropops-senhas
 
@@ -276,9 +275,13 @@ start-loadtest:		        			# Executa loadtest usando K6 enviando os resultados 
 ##------------------------------------------------------------------------
 ##                     Utils
 ##------------------------------------------------------------------------
-.PHONY: drop-pdb						# Dropa os PDBs do cluster
-drop-pdb:
+.PHONY: drop-pdb						
+drop-pdb:								# Dropa os PDBs do cluster
 	bash scripts/drop-pdb.sh
+
+
+load-hosts:								# Adiciona hosts localmente (unix-like only!)
+	sudo bash scripts/hosts.sh
 
 ##------------------------------------------------------------------------
 ##                     Helper

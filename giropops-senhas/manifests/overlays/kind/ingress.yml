@@ -6,3 +6,12 @@ metadata:
 spec:
   rules:
   - host: giropops-senhas.kubernetes.docker.internal
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: giropops-senhas
+            port:
+              number: 5000
