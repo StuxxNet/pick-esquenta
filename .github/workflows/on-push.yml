@@ -57,7 +57,7 @@ jobs:
           format: sarif
           output-file: kube-linter.sarif
   
-  SAST:
+  sast:
     name: SAST
     runs-on: ubuntu-latest
     container:
@@ -125,7 +125,7 @@ jobs:
         run: |
           make push-image-dockerhub-ci
 
-    needs: [test]
+    needs: [sast]
 
   deploy:
     name: Deploy
