@@ -209,4 +209,9 @@ Existem uma série de pontos neste repositório que ainda podem ser melhorados, 
 - Melhoria dos recursos alocados para cada um dos deployment realizados no cluster;
 - Converter o Giropops Senhas para Helm;
 - Melhoria no tempo de probs, pois o app é bastante leve;
-- Fixar a versão do charts para evitar surpresas e updates indesejados.
+- Criar uma nova etapa de deploy para separar stage de produção;
+- Adicionar check manual pra deploy em produção quando a branch não é a main;
+- Separar o CI em templates para usar em outros lugares;
+- Separar a parte de infra-estrutura num repositório de IaC;
+- Fixar a versão do charts para evitar surpresas e updates indesejados;
+- Adicionar um ambiente de stage.
