@@ -10,7 +10,6 @@ Neste repositório você consegue:
 ## Ferramentas Necessárias
 
 Não faz parte do escopo deste repositório fazer a instalação das ferramentas abaixo citadas. O papel de realizar a instalação de cada uma delas é seu. As ferramentas são:
-
 - [Docker](https://www.docker.com/);
 - [Kind](https://kind.sigs.k8s.io/);
 - [Eksctl](https://eksctl.io/);
@@ -126,7 +125,6 @@ $ make deploy-all-local
 ```
 
 Após a execução do comando acima e a configuração do seu arquivos hosts como explicado na sessão anterior basta acessar as URLs abaixo para abrir cada uma das aplicações:
-
 - [Grafana](http://grafana.kubernetes.docker.internal);
 - [Prometheus](http://prometheus.kubernetes.docker.internal);
 - [AlertManager](http://alertmanager.kubernetes.docker.internal);
@@ -153,7 +151,6 @@ Como explicado no começo deste arquivo o repositório também oferece a possibi
 Disclaimer inicial: Não faz parte do escopo deste tutorial explicar o processo de autenticação com a AWS. A geração da sua secret access key e secret key ID, bem como as roles necessárias no IAM ficam sob responsabilidade da pessoa que estiver utilizando este repositório.
 
 Antes de executar o comando que sobe a infraestrutura na AWS faz-se necessário algumas alterações nos arquivos de configuração tanto do Prometheus quanto do Giropops Senhas. As aplicações em questão foram expostas para o mundo externo usando [Ingress NGINX Controller](https://docs.nginx.com/nginx-ingress-controller/), e para que o seu tráfego seja direcionado você precisá adaptar os arquivos de valores do helm com o seu domínio para ajustar o ingress na seguinte apps:
-
 - [Prometheus](./configs/helm/kube-prometheus-stack/values-eks.yml#L30);
 - [Grafana](./configs/helm/kube-prometheus-stack/values-eks.yml#L18);
 - [AlertManager](./configs/helm/kube-prometheus-stack/values-eks.yml#L9);
@@ -170,3 +167,46 @@ Ao fim deste comando você terá um cluster gerenciado (EKS) rodando na AWS devi
 ```bash
 $ kubectl get service -n ingress-nginx
 ```
+
+O resultado deve ser algo parecido com a saída abaixo:
+
+```bash
+NAME                                 TYPE           CLUSTER-IP       EXTERNAL-IP                                                                        PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   10.100.130.143   ae26f6b84c9174fada7483c24ad9e07d-70323fd382e6ef0b.elb.eu-central-1.amazonaws.com   80:30068/TCP,443:32687/TCP   73s
+ingress-nginx-controller-admission   ClusterIP      10.100.54.121    <none>                                                                             443/TCP                      73s
+```
+
+### Deploy com GitHub Actions
+
+Este repositório possui um arquivo simples de CI que executa uma pipeline com os seguinte steps:
+- Lint;
+- Test;
+- Build;
+- Deploy.
+
+a etapa de deployment fará a entrega do Giropops Senhas no cluster EKS criado na etapa anterior. Para tal, em seu repositório os secrets abaixo precisam ser adicionados afim de autenticar o CI junto ao cluster:
+- AWS_ACCESS_KEY_ID;
+- AWS_SECRET_ACCESS_KEY.
+
+Uma pipeline bem sucedida terá a seguinte saída:
+
+![CI](./static/ci.png)
+
+Além do deploy o arquivo de CI também fará o upload dos secutiry findings tanto do código quanto do container para a aba de security, e lá eles devem ser analisados com mais cuidado afim de trazer uma etapa de melhoria contínua da aplicação:
+
+![Security Scan](./static/security-scan.png)
+
+## Pontos de melhoria:
+
+Existem uma série de pontos neste repositório que ainda podem ser melhorados, como por exemplo:
+- Autenticação via OpenID Connect para deploy na AWS, eximindo assim a necessidade de um par de chaves para deploy;
+- Melhoria da bateria de testes incluindo:
+    - Testes de lint específicos de Python
+    - Testes unitários;
+    - Testes end-2-end;
+    - Coverage report;
+    - Code Quality com SonarQube.
+- Melhoria dos recursos alocados para cada um dos deployment realizados no cluster;
+- Converter o Giropops Senhas para Helm;
+- Melhoria no tempo de probs, pois o app é bastante leve;
+- Fixar a versão do charts para evitar surpresas e updates indesejados.
