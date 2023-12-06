@@ -37,7 +37,7 @@ jobs:
           config: configs/hadolint/hadolint-config.yaml
 
   lint-kubernetes-manifests:
-    name: Lint Kubernetes manifests
+    name: Lint Kubernetes Manifests
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -69,8 +69,8 @@ jobs:
       contents: read
 
     steps:
-      - name: Clone da aplicação
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3 
 
       - name: SAST
         run: |
