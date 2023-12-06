@@ -11,8 +11,8 @@ env:
   GIROPOPS_SENHAS_TAG: ${{ github.sha }}
 
 jobs:
-  lint:
-    name: Lint
+  lint-commit-message:
+    name: Check Commit Message
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -23,11 +23,25 @@ jobs:
         with:
           config: angular
 
+  lint-docker-file:
+    name: Lint Docker File
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 
+
       - name: Scan dockerfile com Hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: giropops-senhas/Dockerfile
           config: configs/hadolint/hadolint-config.yaml
+
+  lint-kubernetes-manifests:
+    name: Lint Kubernetes manifests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 
 
       - uses: imranismail/setup-kustomize@v2
       
@@ -43,8 +57,8 @@ jobs:
           format: sarif
           output-file: kube-linter.sarif
   
-  test:
-    name: Test
+  SAST:
+    name: SAST
     runs-on: ubuntu-latest
     container:
       image: returntocorp/semgrep
@@ -70,7 +84,11 @@ jobs:
         with:
           sarif_file: 'sast.sarif'
 
-    needs: [lint]
+    needs: [
+      lint-commit-message,
+      lint-docker-file,
+      lint-kubernetes-manifests
+    ]
 
   docker:
     name: Build
