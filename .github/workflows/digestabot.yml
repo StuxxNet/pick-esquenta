@@ -1,0 +1,29 @@
+name: Image digest update
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  image-update:
+    name: Image digest update
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: chainguard-dev/digestabot@v1.0.2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        signoff: true
+        author: update-bot
+        committer: update-bot@pick-esquenta.com
+        labels-for-pr: automated pr, kind/cleanup, release-note-none
+        branch-for-pr: update-digests
+        title-for-pr: Update images digests
+        commit-message: 'feat: update images digests'
