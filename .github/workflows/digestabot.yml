@@ -21,7 +21,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         signoff: true
-        author: update-bot
+        author: update-bot@pick-esquenta.com
         committer: update-bot@pick-esquenta.com
         labels-for-pr: automated pr, kind/cleanup, release-note-none
         branch-for-pr: update-digests
