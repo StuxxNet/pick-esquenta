@@ -4,6 +4,7 @@ kind: ClusterConfig
 metadata:
   name: pick
   region: eu-central-1
+  version: "1.27"
 
 iam:
   withOIDC: true
