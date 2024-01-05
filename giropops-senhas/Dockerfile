@@ -1,4 +1,4 @@
-FROM cgr.dev/chainguard/python:latest-dev@sha256:48fad41c63b51088019749a7255a6aa484b8879946463e45b6fb77dca5352bcb as builder
+FROM cgr.dev/chainguard/python:latest-dev@sha256:92c4d83b4c0ab161ab1acee860fd1bb64502a525b6c156eed558da35140cf0ad as builder
 
 WORKDIR /giropops-senhas
 
@@ -6,7 +6,7 @@ COPY src/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt --user
 
-FROM cgr.dev/chainguard/python:latest@sha256:be8106b35d26afee7e4c81efc80cda19e60a3b20bc759f2f71e799eea3d3eaf6
+FROM cgr.dev/chainguard/python:latest@sha256:a90f92ba770d51f7e95c158d6ed1ac74ccc7332f9b42770d45a638fb1ac42844
 
 WORKDIR /giropops-senhas
 
