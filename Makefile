@@ -134,7 +134,7 @@ deploy-redis-eks:						# Realiza a instalação do Redis no EKS
 		--wait \
 		--atomic \
 		--debug \
-		--timeout 3m \
+		--timeout 5m \
 		--create-namespace
 
 delete-redis:							# Remove a instalação do Redis
