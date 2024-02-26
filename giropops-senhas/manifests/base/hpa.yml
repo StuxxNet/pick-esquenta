@@ -23,6 +23,13 @@ spec:
       target:
         type: Utilization
         averageUtilization: 50
+  - type: ContainerResource
+    containerResource:
+      container: giropops-senhas
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 5
