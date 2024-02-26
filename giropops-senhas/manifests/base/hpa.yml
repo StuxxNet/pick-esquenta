@@ -17,3 +17,22 @@ spec:
       target:
         type: Utilization
         averageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 50
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 5
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 10
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 10
