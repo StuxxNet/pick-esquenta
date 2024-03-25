@@ -16,13 +16,17 @@ nodeGroups:
     privateNetworking: true
 
 addons:
-- name: vpc-cni 
+- name: vpc-cni
+  version: v1.17.1-eksbuild.1
   attachPolicyARNs:
     - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+  configurationValues: |-
+    enableNetworkPolicy: "true"
 - name: coredns
-  version: latest 
+  version: v1.10.1-eksbuild.7
 - name: kube-proxy
-  version: latest
+  version: v1.27.10-eksbuild.2
 - name: aws-ebs-csi-driver
+  version: v1.28.0-eksbuild.1
   wellKnownPolicies:      
     ebsCSIController: true
