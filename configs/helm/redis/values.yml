@@ -1,7 +1,7 @@
 image:
   registry: cgr.dev
   repository: chainguard/redis-server-bitnami
-  digest: "sha256:b2c8322f1785cf2e4ce805959faffe84b505ef7572e84cb27ca43fc680f74fad"
+  digest: "sha256:aecd5b31a464b7d7032ed34f3e026920869e30f5d4a4414e4962956891eb71f1"
   pullPolicy: Always
 
 auth:
@@ -48,3 +48,6 @@ metrics:
     pullPolicy: Always
   serviceMonitor:
     enabled: true
+
+networkPolicy:
+  enabled: false

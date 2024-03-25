@@ -4,6 +4,7 @@ metadata:
   name: giropops-senhas
   namespace: giropops-senhas
 spec:
+  ingressClassName: nginx
   rules:
   - http:
       paths:

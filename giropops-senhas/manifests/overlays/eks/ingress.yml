@@ -5,7 +5,7 @@ metadata:
   namespace: giropops-senhas
 spec:
   rules:
-  - host: giropops-senhas.aws-cluster.com.br
+  - host: giropops-senhas.ramonborges.site
     http:
       paths:
       - path: /
