@@ -50,4 +50,4 @@ metrics:
     enabled: true
 
 networkPolicy:
-  enabled: false
+  enabled: true
